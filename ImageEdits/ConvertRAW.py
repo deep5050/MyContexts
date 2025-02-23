@@ -2,9 +2,15 @@ import sys
 import rawpy
 import numpy as np
 from PIL import Image, ImageEnhance
+import piexif
 
 # Computer\HKEY_CLASSES_ROOT\SystemFileAssociations\.arw\shell\Convert To JPG\command
 # "C:\Users\dpal\Documents\code\MyContexts\ConvertRAW.bat" "%1"
+
+def get_exif_data(input_path):
+    """Extract EXIF data from the ARW file using piexif."""
+    exif_dict = piexif.load(input_path)
+    return piexif.dump(exif_dict)
 
 def convert_arw_to_jpg(input_path):
     # Read the ARW file
@@ -45,10 +51,14 @@ def convert_arw_to_jpg(input_path):
 
     # Save the image as JPG with the same name
     output_path = input_path.rsplit(".", 1)[0] + ".jpg"
-    img.save(output_path, format="JPEG", quality=95)  # Save with desired quality
+
+    # Get EXIF data from the original ARW file
+    exif_bytes = get_exif_data(input_path)
+
+    # Save the image with EXIF data
+    img.save(output_path, format="JPEG", quality=95, exif=exif_bytes)  # Save with desired quality
 
     print(f"Converted {input_path} to {output_path}")
-
 
 def gather_args():
     args = sys.argv[1:]
